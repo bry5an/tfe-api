@@ -3,30 +3,37 @@ import requests
 from prettytable import PrettyTable
 from __setup import tfe_setup
 
-organization, base_url = tfe_setup()
+# Setup auth etc
+organization, base_url, headers = tfe_setup()
 
-def get_teams(organization):
-    response = requests.get(f'{base_url}/teams')
-    return response.json()
-
-def get_projects(organization, team):
-    response = requests.get(f'{base_url}/teams/{team}/relationships/workspaces')
-    return response.json()
+def get_teams():
+    url = f"{base_url}/teams"
+    print(f'Accessing: {url}')
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    data = response.json()
+    if 'data' not in data:
+        print(f'Error: No data in response: {data}')
+        exit(1)
+    return data
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('organization')
-    args = parser.parse_args()
-
-    teams = get_teams(organization)
+    teams = get_teams()
 
     table = PrettyTable()
-    table.field_names = ["Team", "Project"]
+    table.field_names = ["Team ID", "Team Name", "Project ID", "Project Name"]
 
     for team in teams['data']:
-        projects = get_projects(organization, team['id'])
-        for project in projects['data']:
-            table.add_row([team['attributes']['name'], project['attributes']['name']])
+        team_id = team['id']
+        team_name = team['attributes']['name']
+        team_access_url = f"{base_url}/teams/{team_id}/access"
+        team_access_response = requests.get(team_access_url, headers=headers)
+        team_access = team_access_response.json().get('data', [])
+
+        for project in team_access:
+            project_id = project['id']
+            project_name = project['attributes']['name']
+            table.add_row([team_id, team_name, project_id, project_name])
 
     print(table)
 

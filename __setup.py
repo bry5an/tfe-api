@@ -18,9 +18,10 @@ def tfe_setup():
 
     organization = args.organization
     base_url = f'https://{tf_url}/api/v2/organizations/{organization}'
+    headers = {"Authorization": f"Bearer {os.getenv('TFE_TOKEN')}"}
 
-    if 'TFE_TOKEN' not in os.getenv:
-        print("Error: The TFE_TOKEN environment variable is not set. Please export it before running the script.")
-        exit(1)
+    # if 'TFE_TOKEN' not in os.getenv:
+    #     print("Error: The TFE_TOKEN environment variable is not set. Please export it before running the script.")
+    #     exit(1)
 
-    return organization, base_url
+    return organization, base_url, headers
