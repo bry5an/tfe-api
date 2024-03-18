@@ -17,7 +17,7 @@ def tfe_setup():
         exit(1)
 
     organization = args.organization
-    base_url = f'https://{tf_url}/api/v2/organizations/{organization}'
+    base_url = f'https://{tf_url}/api/v2'
     headers = {"Authorization": f"Bearer {os.getenv('TFE_TOKEN')}"}
 
     # if 'TFE_TOKEN' not in os.getenv:
