@@ -11,8 +11,12 @@ def get_all_projects():
     while url:
         response = requests.get(url, headers=headers)
         data = response.json()
-        projects.extend(data['data'])
-        url = data['links'].get('next')  # Get the next page URL
+        if 'data' in data:
+            projects.extend(data['data'])
+            url = data['links'].get('next')  # Get the next page URL
+        else:
+            print(f"Unexpected response: {data}")
+            break
     return projects
 
 def get_project_team_access(project_id):
