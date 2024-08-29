@@ -73,4 +73,44 @@ for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max
 
 wb.save('workspaces_with_group_highlighted.xlsx')
 
+print("Migration groups and highlights have been added to the Excel file.")# Step 4: Calculate the depth of each workspace
+depth_dict = {}
+for node in nx.topological_sort(G):
+    predecessors = list(G.predecessors(node))
+    if not predecessors:
+        depth_dict[node] = 0
+    else:
+        depth_dict[node] = max(depth_dict[pred] for pred in predecessors) + 1
+
+# Assign group numbers based on depth
+group_dict = {workspace: depth + 1 for workspace, depth in depth_dict.items()}
+
+# Combine the two dictionaries
+group_dict.update(cycle_order_dict)
+
+# Step 5: Add the group number to the DataFrame
+df['MigrationGroup'] = df['WorkspaceName'].map(group_dict)
+
+# Save the updated DataFrame back to the Excel file
+df.to_excel('workspaces_with_group.xlsx', index=False)
+
+# Step 6: Highlight remote workspace names
+wb = load_workbook('workspaces_with_group.xlsx')
+ws = wb.active
+
+highlight_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+
+for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+    for cell in row:
+        if cell.column_letter == 'C' and isinstance(cell.value, str):  # Check if cell value is a string
+            remote_workspaces = cell.value.split(',')
+            for remote_workspace in remote_workspaces:
+                remote_workspace = remote_workspace.strip()
+                for r in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+                    for c in r:
+                        if c.value == remote_workspace:
+                            c.fill = highlight_fill
+
+wb.save('workspaces_with_group_highlighted.xlsx')
+
 print("Migration groups and highlights have been added to the Excel file.")
