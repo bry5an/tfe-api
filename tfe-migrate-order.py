@@ -94,7 +94,7 @@ for row in df.itertuples():
 # Apply the assigned colors to the corresponding cells
 for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
     for cell in row:
-        if cell.column_letter == 'D' and isinstance(cell.value, str):  # Check if cell value is a string
+        if cell.column_letter == 'C' and isinstance(cell.value, str):  # Check if cell value is a string
             remote_workspaces = cell.value.split(',')
             for remote_workspace in remote_workspaces:
                 remote_workspace = remote_workspace.strip()
