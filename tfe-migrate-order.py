@@ -1,5 +1,7 @@
 import pandas as pd
 import networkx as nx
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
 
 # Step 1: Read the Excel file
 df = pd.read_excel('workspaces.xlsx')
@@ -52,4 +54,23 @@ df['MigrationGroup'] = df['WorkspaceName'].map(group_dict)
 # Save the updated DataFrame back to the Excel file
 df.to_excel('workspaces_with_group.xlsx', index=False)
 
-print("Migration groups have been added to the Excel file.")
+# Step 6: Highlight remote workspace names
+wb = load_workbook('workspaces_with_group.xlsx')
+ws = wb.active
+
+highlight_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+
+for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+    for cell in row:
+        if cell.column_letter == 'C' and cell.value:  # Assuming 'RemoteWorkspace' is in column C
+            remote_workspaces = cell.value.split(',')
+            for remote_workspace in remote_workspaces:
+                remote_workspace = remote_workspace.strip()
+                for r in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+                    for c in r:
+                        if c.value == remote_workspace:
+                            c.fill = highlight_fill
+
+wb.save('workspaces_with_group_highlighted.xlsx')
+
+print("Migration groups and highlights have been added to the Excel file.")
