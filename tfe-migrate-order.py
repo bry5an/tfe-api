@@ -18,17 +18,33 @@ for index, row in df.iterrows():
         for remote_workspace in remote_workspaces:
             G.add_edge(remote_workspace.strip(), row['WorkspaceName'])
 
-# Step 3: Perform topological sort
+# Step 3: Detect cycles and assign unique values
+cycles = list(nx.simple_cycles(G))
+cycle_workspaces = set()
+cycle_order_dict = {}
+
+for i, cycle in enumerate(cycles):
+    for workspace in cycle:
+        cycle_workspaces.add(workspace)
+        cycle_order_dict[workspace] = f'cycle-{i+1}'
+
+# Remove cycle workspaces from the graph
+G.remove_nodes_from(cycle_workspaces)
+
+# Step 4: Perform topological sort on the remaining graph
 try:
     migration_order = list(nx.topological_sort(G))
 except nx.NetworkXUnfeasible:
-    print("Error: The graph has cycles, which means there are circular dependencies.")
+    print("Error: The graph still has cycles after removing detected cycles.")
     exit(1)
 
 # Create a dictionary to map workspace names to their migration order
 order_dict = {workspace: order for order, workspace in enumerate(migration_order)}
 
-# Step 4: Add the migration order to the DataFrame
+# Combine the two dictionaries
+order_dict.update(cycle_order_dict)
+
+# Step 5: Add the migration order to the DataFrame
 df['MigrationOrder'] = df['WorkspaceName'].map(order_dict)
 
 # Save the updated DataFrame back to the Excel file
