@@ -85,12 +85,13 @@ for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max
     for cell in row:
         if cell.column_letter == 'D' and isinstance(cell.value, str):  # Check if cell value is a string
             remote_workspaces = cell.value.split(',')
+            colored_value = ""
             for remote_workspace in remote_workspaces:
                 remote_workspace = remote_workspace.strip()
-                for r in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
-                    for c in r:
-                        if c.value == remote_workspace:
-                            c.font = Font(color=remote_workspace_colors[remote_workspace])
+                color = remote_workspace_colors.get(remote_workspace, "000000")
+                colored_value += f"{remote_workspace}, "
+                cell.font = Font(color=color)
+            cell.value = colored_value.strip(', ')
 
 # Also apply the colors to the 'RemoteWorkspace' column itself
 for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=4, max_col=4):  # Assuming 'RemoteWorkspace' is in column D
@@ -101,9 +102,9 @@ for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=4, max_col=4):  #
             for remote_workspace in remote_workspaces:
                 remote_workspace = remote_workspace.strip()
                 color = remote_workspace_colors.get(remote_workspace, "000000")
-                colored_value += f"{remote_workspace} "
+                colored_value += f"{remote_workspace}, "
                 cell.font = Font(color=color)
-            cell.value = colored_value.strip()
+            cell.value = colored_value.strip(', ')
 
 wb.save('workspaces_with_group_highlighted.xlsx')
 
