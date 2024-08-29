@@ -58,18 +58,36 @@ df.to_excel('workspaces_with_group.xlsx', index=False)
 wb = load_workbook('workspaces_with_group.xlsx')
 ws = wb.active
 
-highlight_font = Font(color="FF0000")  # Red color for highlighting
+# List of unique colors
+colors = [
+    "FF0000", "00FF00", "0000FF", "FFFF00", "FF00FF", "00FFFF", "800000", "008000", "000080",
+    "808000", "800080", "008080", "C0C0C0", "808080", "FFA500", "A52A2A", "8A2BE2", "5F9EA0"
+]
 
+# Assign a unique color to each remote workspace
+remote_workspace_colors = {}
+color_index = 0
+
+for row in df.itertuples():
+    if pd.notna(row.RemoteWorkspace):
+        remote_workspaces = row.RemoteWorkspace.split(',')
+        for remote_workspace in remote_workspaces:
+            remote_workspace = remote_workspace.strip()
+            if remote_workspace not in remote_workspace_colors:
+                remote_workspace_colors[remote_workspace] = colors[color_index % len(colors)]
+                color_index += 1
+
+# Apply the assigned colors to the corresponding cells
 for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
     for cell in row:
-        if cell.column_letter == 'C' and isinstance(cell.value, str):  # Check if cell value is a string
+        if cell.column_letter == 'D' and isinstance(cell.value, str):  # Check if cell value is a string
             remote_workspaces = cell.value.split(',')
             for remote_workspace in remote_workspaces:
                 remote_workspace = remote_workspace.strip()
                 for r in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
                     for c in r:
                         if c.value == remote_workspace:
-                            c.font = highlight_font
+                            c.font = Font(color=remote_workspace_colors[remote_workspace])
 
 wb.save('workspaces_with_group_highlighted.xlsx')
 
